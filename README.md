@@ -1,0 +1,1 @@
+# Sveltekit_FastAPI_Template
