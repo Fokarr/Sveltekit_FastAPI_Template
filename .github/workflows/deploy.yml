@@ -1,0 +1,33 @@
+name: Deploy to DigitalOcean Droplet
+
+on:
+  push:
+    branches:
+      - main  # Trigger nur, wenn auf dem 'main' Branch gepusht wird
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Build and restart docker images
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.DROPLET_IP_ADDRESS }}
+        username: ${{ secrets.DROPLET_USERNAME }}
+        key: ${{ secrets.DROPLET_SSH_PRIVATE_KEY }}
+        passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
+        script: |
+          cd Sveltekit_FastAPI_Template
+          git pull ${{ secrets.GIT_TOKEN_URL }}
+          cd frontend
+          docker build . -t frontend:latest
+          cd ..
+          cd backend
+          docker build . -t backend:latest
+          cd ..
+          docker compose down
+          docker compose up -d
